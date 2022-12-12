@@ -36,25 +36,6 @@
 // Support for controlling the keyboard's LEDs
 #include "Kaleidoscope-LEDControl.h"
 
-// Support for "Numpad" mode, which is mostly just the Numpad specific LED mode
-#include "Kaleidoscope-NumPad.h"
-
-// Support for the "Boot greeting" effect, which pulses the 'LED' button for 10s
-// when the keyboard is connected to a computer (or that computer is powered on)
-#include "Kaleidoscope-LEDEffect-BootGreeting.h"
-
-// Support for LED modes that set all LEDs to a single color
-#include "Kaleidoscope-LEDEffect-SolidColor.h"
-
-// Support for an LED mode that makes all the LEDs 'breathe'
-#include "Kaleidoscope-LEDEffect-Breathe.h"
-
-// Support for an LED mode that makes a red pixel chase a blue pixel across the keyboard
-#include "Kaleidoscope-LEDEffect-Chase.h"
-
-// Support for LED modes that pulse the keyboard's LED in a rainbow pattern
-#include "Kaleidoscope-LEDEffect-Rainbow.h"
-
 // Support for shared palettes for other plugins, like Colormap below
 #include "Kaleidoscope-LED-Palette-Theme.h"
 
@@ -75,6 +56,8 @@
 
 // Support for USB quirks, like changing the key state report protocol
 #include "Kaleidoscope-USB-Quirks.h"
+
+#include "Kaleidoscope-AutoShift.h"
 
 /** This 'enum' is a list of all the macros used by the Model 01's firmware
   * The names aren't particularly important. What is important is that each
@@ -337,19 +320,6 @@ const macro_t *macroAction(uint8_t macro_id, KeyEvent &event) {
 }
 
 
-// These 'solid' color effect definitions define a rainbow of
-// LED color modes calibrated to draw 500mA or less on the
-// Keyboardio Model 01.
-
-
-static kaleidoscope::plugin::LEDSolidColor solidRed(160, 0, 0);
-static kaleidoscope::plugin::LEDSolidColor solidOrange(140, 70, 0);
-static kaleidoscope::plugin::LEDSolidColor solidYellow(130, 100, 0);
-static kaleidoscope::plugin::LEDSolidColor solidGreen(0, 160, 0);
-static kaleidoscope::plugin::LEDSolidColor solidBlue(0, 70, 130);
-static kaleidoscope::plugin::LEDSolidColor solidIndigo(0, 0, 170);
-static kaleidoscope::plugin::LEDSolidColor solidViolet(130, 0, 120);
-
 /** toggleLedsOnSuspendResume toggles the LEDs off when the host goes to sleep,
  * and turns them back on when it wakes up.
  */
@@ -438,10 +408,6 @@ KALEIDOSCOPE_INIT_PLUGINS(
   // both debugging, and in backing up one's EEPROM contents.
   FocusEEPROMCommand,
 
-  // The boot greeting effect pulses the LED button for 10 seconds after the
-  // keyboard is first connected
-  BootGreetingEffect,
-
   // The hardware test mode, which can be invoked by tapping Prog, LED and the
   // left Fn button at the same time.
   HardwareTestMode,
@@ -452,40 +418,12 @@ KALEIDOSCOPE_INIT_PLUGINS(
   // We start with the LED effect that turns off all the LEDs.
   LEDOff,
 
-  // The rainbow effect changes the color of all of the keyboard's keys at the same time
-  // running through all the colors of the rainbow.
-  LEDRainbowEffect,
-
-  // The rainbow wave effect lights up your keyboard with all the colors of a rainbow
-  // and slowly moves the rainbow across your keyboard
-  LEDRainbowWaveEffect,
-
-  // The chase effect follows the adventure of a blue pixel which chases a red pixel across
-  // your keyboard. Spoiler: the blue pixel never catches the red pixel
-  LEDChaseEffect,
-
-  // These static effects turn your keyboard's LEDs a variety of colors
-  solidRed,
-  solidOrange,
-  solidYellow,
-  solidGreen,
-  solidBlue,
-  solidIndigo,
-  solidViolet,
-
-  // The breathe effect slowly pulses all of the LEDs on your keyboard
-  LEDBreatheEffect,
-
   // The LED Palette Theme plugin provides a shared palette for other plugins,
   // like Colormap below
   LEDPaletteTheme,
 
   // The Colormap effect makes it possible to set up per-layer colormaps
   ColormapEffect,
-
-  // The numpad plugin is responsible for lighting up the 'numpad' mode
-  // with a custom LED effect
-  NumPad,
 
   // The macros plugin adds support for macros, DynamicMacros does the same for
   // Chrysalis-editable, dynamic ones.
@@ -517,7 +455,11 @@ KALEIDOSCOPE_INIT_PLUGINS(
 
   // The FirmwareVersion plugin lets Chrysalis query the version of the firmware
   // programmatically.
-  FirmwareVersion);
+  FirmwareVersion,
+  
+  AutoShift,
+  AutoShiftConfig
+  );
 
 /** The 'setup' function is one of the two standard Arduino sketch functions.
  * It's called when your keyboard first powers up. This is where you set up
@@ -526,15 +468,6 @@ KALEIDOSCOPE_INIT_PLUGINS(
 void setup() {
   // First, call Kaleidoscope's internal setup function
   Kaleidoscope.setup();
-
-  // While we hope to improve this in the future, the NumPad plugin
-  // needs to be explicitly told which keymap layer is your numpad layer
-  NumPad.numPadLayer = NUMPAD;
-
-  // We set the brightness of the rainbow effects to 150 (on a scale of 0-255)
-  // This draws more than 500mA, but looks much nicer than a dimmer effect
-  LEDRainbowEffect.brightness(150);
-  LEDRainbowWaveEffect.brightness(150);
 
   // Set the action key the test mode should listen for to Left Fn
   HardwareTestMode.setActionKey(R3C6);
@@ -563,6 +496,8 @@ void setup() {
   // If there's a default layer set in EEPROM, we should set that as the default
   // here.
   Layer.move(EEPROMSettings.default_layer());
+
+  AutoShiftConfig.disableAutoShiftIfUnconfigured();
 }
 
 /** loop is the second of the standard Arduino sketch functions.
