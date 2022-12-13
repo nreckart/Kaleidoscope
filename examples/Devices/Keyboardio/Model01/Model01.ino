@@ -49,15 +49,16 @@
 #include "Kaleidoscope-HostPowerManagement.h"
 
 // Support for magic combos (key chords that trigger an action)
-#include "Kaleidoscope-MagicCombo.h"
+//#include "Kaleidoscope-MagicCombo.h"
 
 // Support for secondary actions (one action when tapped, another when held)
 #include "Kaleidoscope-Qukeys.h"
 
+#include <Kaleidoscope-OneShot.h>
+#include <Kaleidoscope-Escape-OneShot.h>
+
 // Support for USB quirks, like changing the key state report protocol
 #include "Kaleidoscope-USB-Quirks.h"
-
-#include "Kaleidoscope-AutoShift.h"
 
 /** This 'enum' is a list of all the macros used by the Model 01's firmware
   * The names aren't particularly important. What is important is that each
@@ -379,12 +380,12 @@ static void enterHardwareTestMode(uint8_t combo_index) {
 /** Magic combo list, a list of key combo and action pairs the firmware should
  * recognise.
  */
-USE_MAGIC_COMBOS({.action = toggleKeyboardProtocol,
-                  // Left Fn + Esc + Shift
-                  .keys = {R3C6, R2C6, R3C7}},
-                 {.action = enterHardwareTestMode,
-                  // Left Fn + Prog + LED
-                  .keys = {R3C6, R0C0, R0C6}});
+// USE_MAGIC_COMBOS({.action = toggleKeyboardProtocol,
+//                   // Left Fn + Esc + Shift
+//                   .keys = {R3C6, R2C6, R3C7}},
+//                  {.action = enterHardwareTestMode,
+//                   // Left Fn + Prog + LED
+//                   .keys = {R3C6, R0C0, R0C6}});
 
 // First, tell Kaleidoscope which plugins you want to use.
 // The order can be important. For example, LED effects are
@@ -438,6 +439,10 @@ KALEIDOSCOPE_INIT_PLUGINS(
   // shift action) when held.
   Qukeys,
 
+  OneShot,
+  EscapeOneShot,
+  EscapeOneShotConfig,
+
   // The HostPowerManagement plugin allows us to turn LEDs off when then host
   // goes to sleep, and resume them when it wakes up.
   HostPowerManagement,
@@ -445,7 +450,7 @@ KALEIDOSCOPE_INIT_PLUGINS(
   // The MagicCombo plugin lets you use key combinations to trigger custom
   // actions - a bit like Macros, but triggered by pressing multiple keys at the
   // same time.
-  MagicCombo,
+  //MagicCombo,
 
   // The USBQuirks plugin lets you do some things with USB that we aren't
   // comfortable - or able - to do automatically, but can be useful
@@ -455,10 +460,7 @@ KALEIDOSCOPE_INIT_PLUGINS(
 
   // The FirmwareVersion plugin lets Chrysalis query the version of the firmware
   // programmatically.
-  FirmwareVersion,
-  
-  AutoShift,
-  AutoShiftConfig
+  FirmwareVersion
   );
 
 /** The 'setup' function is one of the two standard Arduino sketch functions.
@@ -496,8 +498,6 @@ void setup() {
   // If there's a default layer set in EEPROM, we should set that as the default
   // here.
   Layer.move(EEPROMSettings.default_layer());
-
-  AutoShiftConfig.disableAutoShiftIfUnconfigured();
 }
 
 /** loop is the second of the standard Arduino sketch functions.
