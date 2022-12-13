@@ -31,9 +31,12 @@
 #include "Kaleidoscope-MouseKeys.h"
 #include "Kaleidoscope-OneShot.h"
 #include "Kaleidoscope-Qukeys.h"
-#include "Kaleidoscope-SpaceCadet.h"
+//#include "Kaleidoscope-SpaceCadet.h"
 #include "Kaleidoscope-DynamicMacros.h"
 #include "Kaleidoscope-LayerNames.h"
+
+// Support for using long-press to auto-shift keys
+#include "Kaleidoscope-AutoShift.h"
 
 #define MO(n) ShiftToLayer(n)
 #define TG(n) LockLayer(n)
@@ -110,7 +113,6 @@ KALEIDOSCOPE_INIT_PLUGINS(
   FocusEEPROMCommand,
   FocusSettingsCommand,
   Qukeys,
-  SpaceCadet,
   OneShot,
   Macros,
   DynamicMacros,
@@ -118,9 +120,13 @@ KALEIDOSCOPE_INIT_PLUGINS(
   EscapeOneShotConfig,
   FirmwareVersion,
   LayerNames,
-  SpaceCadetConfig,
   OneShotConfig,
-  MouseKeysConfig);
+  MouseKeysConfig,
+
+  // Allows using long-press to auto-shift keys (configurable via Chrysalis).
+  AutoShift,
+  AutoShiftConfig
+  );
 
 const macro_t *macroAction(uint8_t macro_id, KeyEvent &event) {
   if (keyToggledOn(event.state)) {
@@ -153,10 +159,9 @@ void setup() {
 
   Layer.move(EEPROMSettings.default_layer());
 
-  // To avoid any surprises, SpaceCadet is turned off by default. However, it
-  // can be permanently enabled via Chrysalis, so we should only disable it if
-  // no configuration exists.
-  SpaceCadetConfig.disableSpaceCadetIfUnconfigured();
+  // Unless configured otherwise, we want to have the long-press auto-shifting
+  // feature turned off, to avoid surprises.
+  AutoShiftConfig.disableAutoShiftIfUnconfigured();
 }
 
 void loop() {
