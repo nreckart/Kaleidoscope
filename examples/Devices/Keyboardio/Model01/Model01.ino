@@ -36,6 +36,13 @@
 // Support for controlling the keyboard's LEDs
 #include "Kaleidoscope-LEDControl.h"
 
+// Support for the "Boot greeting" effect, which pulses the 'LED' button for 10s
+// when the keyboard is connected to a computer (or that computer is powered on)
+#include "Kaleidoscope-LEDEffect-BootGreeting.h"
+
+// Support for LED modes that set all LEDs to a single color
+#include "Kaleidoscope-LEDEffect-SolidColor.h"
+
 // Support for shared palettes for other plugins, like Colormap below
 #include "Kaleidoscope-LED-Palette-Theme.h"
 
@@ -320,6 +327,19 @@ const macro_t *macroAction(uint8_t macro_id, KeyEvent &event) {
   return MACRO_NONE;
 }
 
+// These 'solid' color effect definitions define a rainbow of
+// LED color modes calibrated to draw 500mA or less on the
+// Keyboardio Model 01.
+
+
+static kaleidoscope::plugin::LEDSolidColor solidRed(160, 0, 0);
+static kaleidoscope::plugin::LEDSolidColor solidOrange(140, 70, 0);
+static kaleidoscope::plugin::LEDSolidColor solidYellow(130, 100, 0);
+static kaleidoscope::plugin::LEDSolidColor solidGreen(0, 160, 0);
+static kaleidoscope::plugin::LEDSolidColor solidBlue(0, 70, 130);
+static kaleidoscope::plugin::LEDSolidColor solidIndigo(0, 0, 170);
+static kaleidoscope::plugin::LEDSolidColor solidViolet(130, 0, 120);
+
 
 /** toggleLedsOnSuspendResume toggles the LEDs off when the host goes to sleep,
  * and turns them back on when it wakes up.
@@ -418,6 +438,19 @@ KALEIDOSCOPE_INIT_PLUGINS(
 
   // We start with the LED effect that turns off all the LEDs.
   LEDOff,
+  
+  // The boot greeting effect pulses the LED button for 10 seconds after the
+  // keyboard is first connected
+  BootGreetingEffect,
+
+  // These static effects turn your keyboard's LEDs a variety of colors
+  solidRed,
+  solidOrange,
+  solidYellow,
+  solidGreen,
+  solidBlue,
+  solidIndigo,
+  solidViolet,
 
   // The LED Palette Theme plugin provides a shared palette for other plugins,
   // like Colormap below
